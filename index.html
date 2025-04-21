@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>Tưởng niệm Đức Thánh Cha</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Arial', 'Helvetica', sans-serif;
+      background: url('background1.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+      height: 100vh;
+    }
+    .overlay {
+      background: rgba(0, 0, 0, 0.6);
+      width: 100%;
+      height: 100%;
+      padding: 50px 30px;
+    }
+    .header {
+      text-align: center;
+      font-size: 32px;
+      margin-bottom: 40px;
+      font-weight: bold;
+      text-shadow: 2px 2px 8px #000;
+    }
+    .images {
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      margin-bottom: 50px;
+      flex-wrap: wrap;
+    }
+    .image-box {
+      width: 240px;
+      height: 320px;
+      border-radius: 30px;
+      overflow: hidden;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .image-box:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.7);
+    }
+    .image-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .text-container {
+      max-width: 900px;
+      margin: 0 auto;
+      font-size: 20px;
+      line-height: 1.7;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    }
+    #typewriter-text {
+      min-height: 300px;
+    }
+    .audio-controls {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .countdown {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay">
+    <div class="header">Đức Thánh Cha Phanxicô</div>
+    <div class="images">
+      <div class="image-box">
+        <img src="anh5.jpg" alt="Đức Thánh Cha Phanxicô" onerror="this.src='/api/placeholder/240/320'">
+      </div>
+      <div class="image-box">
+        <img src="anh6.jpg" alt="Đức Thánh Cha Phanxicô" onerror="this.src='/api/placeholder/240/320'">
+      </div>
+    </div>
+    <div class="text-container">
+      <div id="typewriter-text"></div>
+    </div>
+  </div>
+
+  <audio id="backgroundMusic" loop>
+    <source src="nhac1.mp3" type="audio/mpeg">
+    Trình duyệt của bạn không hỗ trợ phát âm thanh.
+  </audio>
+
+  <div class="audio-controls">
+    <button id="playPauseBtn" style="padding: 8px; cursor: pointer;">Tắt/Bật nhạc</button>
+    <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="0.5" style="width: 100px;">
+  </div>
+
+  <div class="countdown" id="countdown">
+    Chuyển trang tiểu sử: <span id="timer">15</span> giây
+  </div>
+
+  <script>
+    // Tạo mảng các dòng văn bản để hiển thị từng dòng hoàn chỉnh
+    const lines = [
+      "Đức Hồng y Farrell đã loan báo:",
+      "Anh chị em thân mến,",
+      "với nỗi đau sâu sắc, tôi phải thông báo về sự qua đời của Đức Thánh Cha Phanxicô.",
+      "Lúc 7 giờ 35 sáng nay, Giám mục Roma, Phanxicô, đã trở về nhà Cha.",
+      "Cả cuộc đời ngài đã được hiến dâng để phục vụ Chúa và Hội Thánh của Người.",
+      "Ngài đã dạy chúng ta sống các giá trị Tin Mừng với lòng trung tín, can đảm và tình yêu phổ quát,",
+      "đặc biệt là cho những người nghèo khổ và bị gạt ra bên lề.",
+      "Với lòng biết ơn sâu xa vì gương sáng của ngài như một môn đệ đích thực của Chúa Giêsu,",
+      "chúng ta phó thác linh hồn Đức Thánh Cha Phanxicô cho tình yêu thương xót vô biên của Thiên Chúa Ba Ngôi.",
+      "(VaticanNews)"
+    ];
+
+    // Các phần tử DOM
+    const textElement = document.getElementById("typewriter-text");
+    const music = document.getElementById("backgroundMusic");
+    const playPauseBtn = document.getElementById("playPauseBtn");
+    const volumeControl = document.getElementById("volumeControl");
+    const countdownElement = document.getElementById("countdown");
+    const timerElement = document.getElementById("timer");
+
+    // Phương pháp hiển thị theo dòng để tránh lỗi dấu
+    let currentLine = 0;
+    let currentChar = 0;
+    const speed = 50; // Tốc độ đánh chữ
+
+    function typeWriter() {
+      if (currentLine < lines.length) {
+        // Nếu đang đánh chữ trong dòng hiện tại
+        if (currentChar < lines[currentLine].length) {
+          textElement.innerHTML += lines[currentLine].charAt(currentChar);
+          currentChar++;
+          setTimeout(typeWriter, speed);
+        } 
+        // Nếu hoàn thành dòng hiện tại, chuyển sang dòng mới
+        else {
+          textElement.innerHTML += "<br><br>";
+          currentLine++;
+          currentChar = 0;
+          setTimeout(typeWriter, speed * 4); // Dừng một chút giữa các dòng
+        }
+      } else {
+        // Hoàn thành tất cả các dòng
+        startCountdown();
+      }
+    }
+
+    // Điều khiển âm nhạc
+    playPauseBtn.addEventListener("click", function() {
+      if (music.paused) {
+        music.play();
+        playPauseBtn.textContent = "Tắt nhạc";
+      } else {
+        music.pause();
+        playPauseBtn.textContent = "Bật nhạc";
+      }
+    });
+
+    volumeControl.addEventListener("input", function() {
+      music.volume = volumeControl.value;
+    });
+
+    // Hàm đếm ngược và chuyển trang
+    function startCountdown() {
+      countdownElement.style.display = "block";
+      let timeLeft = 15;
+      
+      const countdown = setInterval(function() {
+        timeLeft--;
+        timerElement.textContent = timeLeft;
+        
+        if (timeLeft <= 0) {
+          clearInterval(countdown);
+          window.location.href = "PAPA.html";
+        }
+      }, 1000);
+    }
+
+    // Khi trang tải xong
+    window.onload = function() {
+      // Bắt đầu hiệu ứng đánh chữ
+      typeWriter();
+      
+      // Phát nhạc nền với âm lượng thấp hơn
+      music.volume = volumeControl.value;
+      music.play().catch(e => {
+        console.log("Tự động phát nhạc bị chặn bởi trình duyệt:", e);
+        playPauseBtn.textContent = "Bật nhạc";
+      });
+    };
+  </script>
+</body>
+</html>
